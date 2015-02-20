@@ -1,5 +1,8 @@
 class LinksController < ApplicationController
+
   before_action :set_link, only: [:show, :edit, :update, :destroy]
+  before_action :authorized_user, only: [:edit, :update, :destroy]
+  before_action :authenticate_user!, :except => [:index, :show]
 
   # GET /links
   # GET /links.json
@@ -14,7 +17,7 @@ class LinksController < ApplicationController
 
   # GET /links/new
   def new
-    @link = Link.new
+    @link = current_user.links.build
   end
 
   # GET /links/1/edit
@@ -24,7 +27,7 @@ class LinksController < ApplicationController
   # POST /links
   # POST /links.json
   def create
-    @link = Link.new(link_params)
+    @link = current_user.links.build(link_params)
 
     respond_to do |format|
       if @link.save
@@ -62,6 +65,12 @@ class LinksController < ApplicationController
   end
 
   private
+
+    def authorized_user
+      @link = current_user.links.find_by(id: params[:id])
+      redirect_to links_path, notice: "Not authorized to edit this link" if @link.nil?
+    end
+
     # Use callbacks to share common setup or constraints between actions.
     def set_link
       @link = Link.find(params[:id])
